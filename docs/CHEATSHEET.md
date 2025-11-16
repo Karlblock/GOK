@@ -1,22 +1,13 @@
 # GOK8S - Cheatsheet
 
-## 🚀 Scripts Essentiels
+##  Scripts Essentiels
 
-### k3d (Multi-Node - Recommandé ✅)
+### k3d Multi-Node 
 
 ```bash
 ./k3d-deploy.sh      # Créer et déployer avec k3d multi-node (2-3 min)
 ./k3d-cleanup.sh     # Tout supprimer (30 sec)
 ./gok-learn.sh       # 🎓 CLI interactif d'apprentissage
-```
-
-### kind (Single-Node - Fallback)
-
-```bash
-./gok-deploy.sh      # Créer et déployer avec kind single-node (3-5 min)
-./gok-start.sh       # Vérifier l'existant (5 sec)
-./gok-status.sh      # Diagnostic complet (10 sec)
-./gok-cleanup.sh     # Tout supprimer (30 sec)
 ```
 
 **Note**: Sur ton système, utilise **k3d** pour avoir le multi-node. Voir [K3D_VS_KIND.md](K3D_VS_KIND.md)
@@ -77,22 +68,6 @@ docker system prune -a
 # Arrêter/Démarrer (sans supprimer)
 ~/bin/k3d cluster stop gotk8s
 ~/bin/k3d cluster start gotk8s
-```
-
-## 🔧 kind (Fallback)
-
-```bash
-# Clusters
-kind get clusters
-
-# Supprimer
-kind delete cluster --name gotk8s
-
-# Créer (single-node seulement)
-kind create cluster --config kind/cluster-config.yaml
-
-# Charger image
-kind load docker-image gotk8s/the-north-api:1.0 --name gotk8s
 ```
 
 ## 🚨 Dépannage Rapide

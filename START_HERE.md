@@ -1,6 +1,6 @@
-# 🎯 GOK8S - Commencer Ici
+#  GOK8S - Commencer Ici
 
-## 🚀 Démarrage Ultra-Rapide (2 commandes)
+##  Démarrage Ultra-Rapide (2 commandes)
 
 ```bash
 # 1. Déployer le cluster multi-node
@@ -9,12 +9,9 @@
 # 2. Lancer le CLI d'apprentissage
 ./gok-learn
 ```
-
-C'est tout ! 🎉
-
 ---
 
-## 📁 Structure du Projet
+## Structure du Projet
 
 ```
 GOK8S/
@@ -149,4 +146,4 @@ Plus de détails : [docs/TROUBLESHOOTING_KIND.md](docs/TROUBLESHOOTING_KIND.md)
 
 ---
 
-Winter is Coming... Learn Kubernetes! 🐺⚡
+Winter is Coming... Learn Kubernetes! 🐺
