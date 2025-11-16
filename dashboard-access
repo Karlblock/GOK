@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# ===========================================
+# GOK8S - Kubernetes Dashboard Access Helper
+# Facilite l'accès au Kubernetes Dashboard
+# ===========================================
+
+# Couleurs
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+print_header() {
+    echo ""
+    echo -e "${BLUE}======================================"
+    echo "  $1"
+    echo "======================================${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✓ $1${NC}"
+}
+
+print_info() {
+    echo -e "${YELLOW}➜ $1${NC}"
+}
+
+# Vérifier si le dashboard est installé
+if ! kubectl get namespace kubernetes-dashboard &>/dev/null; then
+    echo "❌ Le Kubernetes Dashboard n'est pas installé."
+    echo ""
+    echo "Pour l'installer, relancez le déploiement:"
+    echo "  ./k3d-deploy"
+    echo ""
+    exit 1
+fi
+
+print_header "Kubernetes Dashboard - Accès Rapide"
+
+echo ""
+print_info "Récupération du token d'accès..."
+echo ""
+
+TOKEN=$(kubectl get secret admin-user-token -n kubernetes-dashboard -o jsonpath='{.data.token}' 2>/dev/null | base64 -d)
+
+if [ -z "$TOKEN" ]; then
+    echo "❌ Impossible de récupérer le token."
+    echo "Le dashboard est peut-être en cours d'installation."
+    exit 1
+fi
+
+print_success "Token récupéré!"
+echo ""
+echo -e "${YELLOW}=== TOKEN D'ACCÈS (copier ce token) ===${NC}"
+echo ""
+echo "$TOKEN"
+echo ""
+echo -e "${YELLOW}=======================================${NC}"
+echo ""
+
+print_info "Instructions d'accès:"
+echo ""
+echo "1. Dans un AUTRE terminal, lancez le proxy Kubernetes:"
+echo -e "   ${GREEN}kubectl proxy${NC}"
+echo ""
+echo "2. Ouvrez votre navigateur à cette URL:"
+echo -e "   ${GREEN}http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/${NC}"
+echo ""
+echo "3. Choisissez 'Token' et collez le token ci-dessus"
+echo ""
+
+print_info "Voulez-vous lancer le proxy maintenant? (Ctrl+C pour arrêter)"
+read -p "Lancer kubectl proxy? [Y/n] " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+    echo ""
+    print_success "Lancement du proxy..."
+    echo ""
+    echo -e "${YELLOW}Le dashboard sera accessible à:${NC}"
+    echo "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/"
+    echo ""
+    echo -e "${YELLOW}Appuyez sur Ctrl+C pour arrêter le proxy${NC}"
+    echo ""
+    kubectl proxy
+fi

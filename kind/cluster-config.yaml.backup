@@ -1,0 +1,53 @@
+# Configuration du cluster Kubernetes avec kind
+# Équivalent au setup Vagrant: 1 master + 2 workers
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: gotk8s
+networking:
+  # Réseau pod (équivalent au pod_network_cidr de la config Vagrant)
+  podSubnet: "10.244.0.0/16"
+  # Réseau service (équivalent au service_cidr)
+  serviceSubnet: "10.96.0.0/12"
+  # Désactiver le proxy par défaut pour utiliser Calico
+  disableDefaultCNI: false
+  # Configuration de l'API server
+  apiServerAddress: "127.0.0.1"
+  apiServerPort: 6443
+
+# Définition des nœuds du cluster
+nodes:
+  # Nœud master (control-plane)
+  - role: control-plane
+    image: kindest/node:v1.28.0@sha256:b7a4cad12c197af3ba43202d3efe03246b3f0793f162afb40a33c923952d5b31
+    # Port mapping pour accéder aux services depuis l'hôte
+    extraPortMappings:
+      # Port pour le frontend GOTK8S
+      - containerPort: 30100
+        hostPort: 30100
+        protocol: TCP
+      # Port pour l'API GOTK8S
+      - containerPort: 30101
+        hostPort: 30101
+        protocol: TCP
+      # Port pour le dashboard K8s (optionnel)
+      - containerPort: 30000
+        hostPort: 30000
+        protocol: TCP
+    # Labels pour identifier le master
+    labels:
+      node-role: master
+      gotk8s-node: control-plane
+
+  # Nœud worker 1
+  - role: worker
+    image: kindest/node:v1.28.0@sha256:b7a4cad12c197af3ba43202d3efe03246b3f0793f162afb40a33c923952d5b31
+    labels:
+      node-role: worker
+      gotk8s-node: worker1
+
+  # Nœud worker 2
+  - role: worker
+    image: kindest/node:v1.28.0@sha256:b7a4cad12c197af3ba43202d3efe03246b3f0793f162afb40a33c923952d5b31
+    labels:
+      node-role: worker
+      gotk8s-node: worker2

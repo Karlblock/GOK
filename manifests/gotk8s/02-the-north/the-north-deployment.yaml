@@ -1,0 +1,141 @@
+---
+# The North Backend (Ravens API)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: the-north-api
+  namespace: westeros
+  labels:
+    app: the-north-api
+    kingdom: the-north
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: the-north-api
+  template:
+    metadata:
+      labels:
+        app: the-north-api
+        kingdom: the-north
+        tier: backend
+    spec:
+      containers:
+      - name: ravens-api
+        image: gotk8s/the-north-api:1.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: PORT
+          value: "3000"
+        - name: REDIS_HOST
+          value: "redis-service"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: NODE_ENV
+          value: "production"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: the-north-api-service
+  namespace: westeros
+  labels:
+    app: the-north-api
+spec:
+  selector:
+    app: the-north-api
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  type: ClusterIP
+---
+# The North Frontend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: the-north-frontend
+  namespace: westeros
+  labels:
+    app: the-north-frontend
+    kingdom: the-north
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: the-north-frontend
+  template:
+    metadata:
+      labels:
+        app: the-north-frontend
+        kingdom: the-north
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: gotk8s/the-north-frontend:1.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: the-north-frontend-service
+  namespace: westeros
+  labels:
+    app: the-north-frontend
+spec:
+  selector:
+    app: the-north-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  type: ClusterIP

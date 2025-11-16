@@ -1,0 +1,44 @@
+# Configuration simplifiée du cluster Kubernetes avec kind
+# Version plus récente et configuration plus robuste
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: gotk8s
+networking:
+  podSubnet: "10.244.0.0/16"
+  serviceSubnet: "10.96.0.0/12"
+  apiServerAddress: "127.0.0.1"
+  apiServerPort: 6443
+
+# Nœuds du cluster
+nodes:
+  # Nœud master (control-plane)
+  - role: control-plane
+    # Utiliser une version plus récente et stable
+    image: kindest/node:v1.29.0@sha256:eaa1450915475849a73a9227b8f201df25e55e268e5d619312131292e324d570
+    extraPortMappings:
+      - containerPort: 30100
+        hostPort: 30100
+        protocol: TCP
+      - containerPort: 30101
+        hostPort: 30101
+        protocol: TCP
+      - containerPort: 30000
+        hostPort: 30000
+        protocol: TCP
+    labels:
+      node-role: master
+      gotk8s-node: control-plane
+
+  # Nœud worker 1
+  - role: worker
+    image: kindest/node:v1.29.0@sha256:eaa1450915475849a73a9227b8f201df25e55e268e5d619312131292e324d570
+    labels:
+      node-role: worker
+      gotk8s-node: worker1
+
+  # Nœud worker 2
+  - role: worker
+    image: kindest/node:v1.29.0@sha256:eaa1450915475849a73a9227b8f201df25e55e268e5d619312131292e324d570
+    labels:
+      node-role: worker
+      gotk8s-node: worker2

@@ -1,0 +1,19 @@
+# Configuration avec 1 control-plane + 1 worker
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: gotk8s
+networking:
+  podSubnet: "10.244.0.0/16"
+  serviceSubnet: "10.96.0.0/12"
+
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30100
+        hostPort: 30100
+      - containerPort: 30101
+        hostPort: 30101
+      - containerPort: 30000
+        hostPort: 30000
+
+  - role: worker

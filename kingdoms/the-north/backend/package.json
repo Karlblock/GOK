@@ -1,0 +1,22 @@
+{
+  "name": "the-north-ravens-api",
+  "version": "1.0.0",
+  "description": "The North - Ravens Messaging Service API",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": ["gameofthrones", "kubernetes", "ravens", "messaging"],
+  "author": "GOTK8S",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "redis": "^4.6.0",
+    "socket.io": "^4.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}
