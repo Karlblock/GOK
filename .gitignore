@@ -1,0 +1,62 @@
+# Documentation
+docs/
+
+# Fichiers binaires Go
+*.exe
+*.out
+main
+*.test
+*.prof
+
+# Fichiers de dépendances
+vendor/
+go.sum
+
+# Fichiers IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets et configurations sensibles
+*.env
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+secrets.yaml
+secrets.yml
+*-secret.yaml
+*-secret.yml
+kubeconfig
+*.kubeconfig
+.kube/
+
+# Fichiers temporaires
+*.log
+*.tmp
+*.temp
+*.cache
+*.pid
+*.seed
+*.pid.lock
+
+# Credentials et tokens
+*credentials*
+*token*
+*.passwd
+*.password
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+*.old
