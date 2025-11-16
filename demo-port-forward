@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Script pour maintenir le port-forward actif pour la démo
+
+set -e
+
+# Couleurs
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}║     🔌 Port-forward Demo (Port 30200)                    ║${NC}"
+echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
+echo ""
+
+# Vérifier que le namespace existe
+if ! kubectl get namespace demo > /dev/null 2>&1; then
+    echo -e "${RED}✗ Le namespace 'demo' n'existe pas${NC}"
+    echo ""
+    echo -e "${YELLOW}Déployez d'abord l'application avec:${NC}"
+    echo "  ./demo-scalabilite"
+    echo "  Puis choisissez l'option 2 (Déploiement initial)"
+    echo ""
+    exit 1
+fi
+
+# Vérifier que le service existe
+if ! kubectl get svc demo-webapp -n demo > /dev/null 2>&1; then
+    echo -e "${RED}✗ Le service 'demo-webapp' n'existe pas${NC}"
+    echo ""
+    echo -e "${YELLOW}Déployez d'abord l'application avec:${NC}"
+    echo "  ./demo-scalabilite"
+    echo "  Puis choisissez l'option 2 (Déploiement initial)"
+    echo ""
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Service demo-webapp trouvé${NC}"
+echo ""
+echo -e "${CYAN}Configuration:${NC}"
+echo "  Port local:  30200"
+echo "  Service:     demo-webapp.demo:80"
+echo ""
+echo -e "${YELLOW}⚠️  Laissez cette fenêtre ouverte${NC}"
+echo -e "${YELLOW}⚠️  Appuyez sur Ctrl+C pour arrêter${NC}"
+echo ""
+
+# Lancer le port-forward
+echo -e "${CYAN}Démarrage du port-forward...${NC}"
+kubectl port-forward -n demo svc/demo-webapp 30200:80

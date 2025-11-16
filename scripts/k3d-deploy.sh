@@ -114,7 +114,8 @@ create_cluster() {
         --servers 1 \
         --agents 2 \
         -p "30100:30100@loadbalancer" \
-        -p "30101:30101@loadbalancer"
+        -p "30101:30101@loadbalancer" \
+        -p "30200:30200@loadbalancer"
 
     print_success "Cluster créé avec succès"
 

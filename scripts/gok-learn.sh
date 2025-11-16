@@ -85,9 +85,7 @@ check_cluster() {
         print_error "Cluster '${CLUSTER_NAME}' non trouvé"
         echo ""
         echo "Lancer d'abord:"
-        echo "  ./k3d-deploy    (recommandé - multi-node)"
-        echo "  ou"
-        echo "  ./gok-deploy    (fallback - single-node)"
+        echo "  ./k3d-deploy"
         exit 1
     fi
 

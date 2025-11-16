@@ -80,6 +80,9 @@ cd GOK8S
 
 # 3. Lancer le CLI d'apprentissage interactif
 ./gok-learn
+
+# 4. (Optionnel) Démonstration de scalabilité
+./demo-scalabilite
 ```
 
 **Durée totale : 2-3 minutes**
@@ -129,12 +132,16 @@ GOK8S/
 ├── k3d-deploy                  # 🚀 Lien vers scripts/k3d-deploy.sh
 ├── k3d-cleanup                 # 🧹 Lien vers scripts/k3d-cleanup.sh
 ├── gok-learn                   # 🎓 Lien vers scripts/gok-learn.sh
+├── demo-scalabilite            # 🎬 Lien vers scripts/demo-scalabilite.sh
 ├── dashboard-access            # 📊 Script accès Dashboard K8s
 │
 ├── scripts/                    # Scripts de gestion
 │   ├── k3d-deploy.sh          # Déploiement k3d (RECOMMANDÉ)
 │   ├── k3d-cleanup.sh         # Nettoyage k3d
 │   ├── gok-learn.sh           # CLI interactif d'apprentissage
+│   ├── demo-scalabilite.sh    # Démo scalabilité et HPA
+│   ├── demo-load-test.sh      # Générateur de charge
+│   ├── dashboard-access.sh    # Accès Dashboard
 │   ├── gok-deploy.sh          # Déploiement kind (legacy)
 │   ├── gok-status.sh          # Status du cluster
 │   └── gok-cleanup.sh         # Nettoyage kind
@@ -147,11 +154,15 @@ GOK8S/
 │   └── load-images-to-k8s.sh  # Chargement images
 │
 ├── manifests/                  # Manifestes Kubernetes
-│   └── gotk8s/                # Manifestes GOTK8S
-│       ├── 00-namespace/      # Namespace + quotas
-│       ├── 01-redis/          # Redis deployment
-│       ├── 02-the-north/      # API + Frontend
-│       └── 03-ingress/        # Services NodePort
+│   ├── gotk8s/                # Manifestes GOTK8S
+│   │   ├── 00-namespace/      # Namespace + quotas
+│   │   ├── 01-redis/          # Redis deployment
+│   │   ├── 02-the-north/      # API + Frontend
+│   │   └── 03-ingress/        # Services NodePort
+│   └── demo/                  # Démonstration scalabilité
+│       ├── demo-deployment.yaml # Déploiement démo
+│       ├── demo-hpa.yaml      # HorizontalPodAutoscaler
+│       └── README.md          # Documentation démo
 │
 ├── scenarios/                  # Scénarios d'apprentissage
 │   └── 01-winter-is-coming/   # Scénario 1 - Tutorial
@@ -168,6 +179,23 @@ GOK8S/
     ├── TROUBLESHOOTING_KIND.md # Dépannage kind
     └── ...
 ```
+
+## Démonstration de scalabilité 🎬
+
+**Nouveau !** Un outil interactif pour démontrer les capacités d'auto-scaling de Kubernetes :
+
+```bash
+./demo-scalabilite
+```
+
+Fonctionnalités :
+- 🎬 **Démonstration complète automatique** avec montées en charge progressives
+- 📈 **Simulations de charge** : 10, 50, 100, ou 500 utilisateurs simultanés
+- 📊 **Monitoring en temps réel** : Visualisation du scaling en action
+- 🌐 **Intégration Dashboard** : Voir le scaling graphiquement
+- 🔥 **HPA (Horizontal Pod Autoscaler)** : De 1 à 10 replicas automatiquement
+
+**Documentation complète** : [manifests/demo/README.md](manifests/demo/README.md)
 
 ## Scénarios d'apprentissage
 
