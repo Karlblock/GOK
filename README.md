@@ -5,10 +5,13 @@
 
 **GOK8S** est un laboratoire d'apprentissage pratique pour Kubernetes et l'orchestration de conteneurs. Inspiré par [GOAD](https://github.com/Orange-Cyberdefense/GOAD), ce projet fournit un environnement éducatif complet avec :
 
-- **Kubernetes (K8s)** via kind (Kubernetes IN Docker)
+- **Kubernetes (K8s)** via k3d (k3s in docker) - Multi-node fonctionnel
 - **Applications réelles** thème Game of Thrones
-- **Déploiement rapide** : 30-60 secondes vs 20-25 minutes avec Vagrant
+- **Déploiement rapide** : 2-3 minutes pour un cluster complet
 - **Scénarios progressifs** d'apprentissage
+- **CLI interactif** pour apprendre de manière ludique
+
+> **📖 Nouveau ?** Commencez par [START_HERE.md](START_HERE.md) pour un démarrage ultra-rapide !
 
 ## GOTK8S - Game Of Thrones Kubernetes
 
@@ -28,24 +31,34 @@
 
 ## Architecture
 
-Le projet utilise **kind** (Kubernetes IN Docker) pour un déploiement rapide et stable :
+Le projet utilise **k3d** (k3s in docker) pour un déploiement rapide et multi-node stable :
 
-### Cluster Kubernetes avec kind
-- **1 nœud control-plane** : Orchestration du cluster
-- **2 nœuds worker** : Exécution des applications
-- **Réseau** : Configuration automatique par kind
-- **NodePort mapping** : Accès facile aux services (30100, 30101, etc.)
-- **Temps de démarrage** : 30-60 secondes ⚡
+### Cluster Kubernetes avec k3d
+- **1 nœud server** : Control-plane léger (k3s)
+- **2 nœuds agent** : Workers pour exécuter les applications
+- **Multi-node fonctionnel** : Compatible cgroup v2
+- **Réseau** : Configuration automatique avec NodePort mapping
+- **Ports exposés** : 30100 (Frontend), 30101 (API)
+- **Temps de démarrage** : 2-3 minutes ⚡
+
+> **Note** : kind était utilisé précédemment mais rencontrait des problèmes multi-node avec cgroup v2. Voir [K3D_VS_KIND.md](K3D_VS_KIND.md) pour plus de détails.
 
 ## Prérequis
 
 ### Logiciels requis
 
 - [Docker](https://docs.docker.com/get-docker/) >= 20.10
-- [kind](https://kind.sigs.k8s.io/) >= 0.20 (Kubernetes IN Docker)
+- [k3d](https://k3d.io/) >= 5.6.0 (k3s in docker)
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) >= 1.28
-- Au moins 8 Go de RAM disponible
-- 20 Go d'espace disque libre
+- Au moins 4 Go de RAM disponible (k3s est plus léger que k8s)
+- 10 Go d'espace disque libre
+
+> **Installation k3d** :
+> ```bash
+> mkdir -p ~/bin
+> curl -Lo ~/bin/k3d https://github.com/k3d-io/k3d/releases/download/v5.6.0/k3d-linux-amd64
+> chmod +x ~/bin/k3d
+> ```
 
 ### Système d'exploitation
 
@@ -55,44 +68,46 @@ Le projet utilise **kind** (Kubernetes IN Docker) pour un déploiement rapide et
 
 ## Installation rapide
 
-### Méthode 1 : Scripts automatiques (RECOMMANDÉ) ⚡
+### Méthode 1 : Démarrage Ultra-Rapide (RECOMMANDÉ) ⚡
 
 ```bash
 # 1. Cloner le dépôt
 git clone https://github.com/votre-username/GOK8S.git
 cd GOK8S
 
-# 2. Déployer tout en une commande
-./gok-deploy.sh
+# 2. Déployer le cluster multi-node avec k3d
+./k3d-deploy
 
-# 3. Accéder aux services
-firefox http://localhost:30100  # Frontend
-curl http://localhost:30101     # API
+# 3. Lancer le CLI d'apprentissage interactif
+./gok-learn
 ```
 
-**Durée totale : 3-5 minutes**
+**Durée totale : 2-3 minutes**
 
-Voir [QUICKSTART.md](QUICKSTART.md) pour plus de détails.
+> **📖 Pour plus de détails** : Voir [START_HERE.md](START_HERE.md)
 
-### Méthode 2 : Manuelle
+### Méthode 2 : Manuelle avec k3d
 
 ```bash
 # 1. Cloner le dépôt
 git clone https://github.com/votre-username/GOK8S.git
 cd GOK8S
 
-# 2. Créer le cluster (1 control-plane + 2 workers)
-cd kind
-kind create cluster --config cluster-config.yaml
+# 2. Créer le cluster k3d (1 server + 2 agents)
+k3d cluster create gotk8s \
+  --servers 1 \
+  --agents 2 \
+  --port "30100:30100@server:0" \
+  --port "30101:30101@server:0"
 
 # 3. Vérifier le cluster
 kubectl get nodes
 
 # 4. Construire et charger les images
-cd ../kingdoms
+cd kingdoms
 bash build-images.sh
-kind load docker-image gotk8s/the-north-api:1.0 --name gotk8s
-kind load docker-image gotk8s/the-north-frontend:1.0 --name gotk8s
+k3d image import gotk8s/the-north-api:1.0 -c gotk8s
+k3d image import gotk8s/the-north-frontend:1.0 -c gotk8s
 
 # 5. Déployer GOTK8S
 kubectl apply -f ../manifests/gotk8s/
@@ -106,31 +121,52 @@ curl http://localhost:30101  # API
 
 ```
 GOK8S/
-├── README.md
+├── START_HERE.md               # 🎯 Point d'entrée - Commencez ici !
+├── README.md                   # Documentation principale
 ├── LICENSE
 ├── .gitignore
-├── kind/
-│   └── cluster-config.yaml     # Configuration cluster kind (1 control-plane + 2 workers)
-├── kingdoms/
-│   ├── the-north/              # Application The North (Ravens messaging)
-│   │   ├── api/                # Backend Node.js + Socket.IO
-│   │   └── frontend/           # Frontend HTML/JS
-│   ├── build-images.sh         # Construction images Docker
-│   └── load-images-to-k8s.sh   # Chargement images dans kind
-├── manifests/
-│   └── gotk8s/                 # Manifestes Kubernetes
-│       ├── 00-namespace/       # Namespace + quotas
-│       ├── 01-redis/           # Redis deployment
-│       ├── 02-the-north/       # API + Frontend
-│       └── 03-ingress/         # Services NodePort
-├── scenarios/
-│   └── 01-winter-is-coming/    # Scénario 1 - Tutorial complet
-├── docs/
-│   ├── CHANGELOG.md            # Historique des versions
-│   └── troubleshooting.md
-├── GUIDE_ENSEIGNANT.md         # Guide pour enseignants
-├── GUIDE_ETUDIANT.md           # Guide pour étudiants
-└── GOTK8S_PROJECT.md           # Architecture complète
+│
+├── k3d-deploy                  # 🚀 Lien vers scripts/k3d-deploy.sh
+├── k3d-cleanup                 # 🧹 Lien vers scripts/k3d-cleanup.sh
+├── gok-learn                   # 🎓 Lien vers scripts/gok-learn.sh
+├── dashboard-access            # 📊 Script accès Dashboard K8s
+│
+├── scripts/                    # Scripts de gestion
+│   ├── k3d-deploy.sh          # Déploiement k3d (RECOMMANDÉ)
+│   ├── k3d-cleanup.sh         # Nettoyage k3d
+│   ├── gok-learn.sh           # CLI interactif d'apprentissage
+│   ├── gok-deploy.sh          # Déploiement kind (legacy)
+│   ├── gok-status.sh          # Status du cluster
+│   └── gok-cleanup.sh         # Nettoyage kind
+│
+├── kingdoms/                   # Code source des applications
+│   ├── the-north/             # Application The North (Ravens)
+│   │   ├── api/               # Backend Node.js + Socket.IO
+│   │   └── frontend/          # Frontend HTML/JS
+│   ├── build-images.sh        # Construction images Docker
+│   └── load-images-to-k8s.sh  # Chargement images
+│
+├── manifests/                  # Manifestes Kubernetes
+│   └── gotk8s/                # Manifestes GOTK8S
+│       ├── 00-namespace/      # Namespace + quotas
+│       ├── 01-redis/          # Redis deployment
+│       ├── 02-the-north/      # API + Frontend
+│       └── 03-ingress/        # Services NodePort
+│
+├── scenarios/                  # Scénarios d'apprentissage
+│   └── 01-winter-is-coming/   # Scénario 1 - Tutorial
+│
+├── kind/                       # Configuration kind (legacy)
+│   └── cluster-config.yaml    # Config kind (problèmes multi-node)
+│
+└── docs/                       # Documentation complète
+    ├── INDEX.md               # Index complet
+    ├── CHEATSHEET.md          # Commandes rapides
+    ├── K3D_VS_KIND.md         # Comparaison k3d vs kind
+    ├── LEARNING_CLI.md        # Guide CLI interactif
+    ├── KUBERNETES_DASHBOARD.md # Guide Dashboard
+    ├── TROUBLESHOOTING_KIND.md # Dépannage kind
+    └── ...
 ```
 
 ## Scénarios d'apprentissage
@@ -147,46 +183,58 @@ Le lab inclut plusieurs scénarios progressifs :
 
 ## Configuration avancée
 
-### Personnaliser le cluster kind
+### Personnaliser le cluster k3d
 
-Éditez le fichier [kind/cluster-config.yaml](kind/cluster-config.yaml) :
+Modifier le script [scripts/k3d-deploy.sh](scripts/k3d-deploy.sh) pour ajuster :
 
-```yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-- role: control-plane
-  extraPortMappings:
-  - containerPort: 30100
-    hostPort: 30100
-  - containerPort: 30101
-    hostPort: 30101
-- role: worker
-- role: worker
-- role: worker  # Ajouter un 3ème worker
+```bash
+# Exemple : Ajouter un 3ème agent (worker)
+k3d cluster create gotk8s \
+  --servers 1 \
+  --agents 3 \    # Au lieu de 2
+  --port "30100:30100@server:0" \
+  --port "30101:30101@server:0"
 ```
 
-### Utiliser une VM pré-configurée
+### Accéder au Dashboard Kubernetes
 
-Téléchargez la VM **GOK v1.0** (4.4GB) avec tout pré-installé :
-- Ubuntu 24.04 + Docker + kind + kubectl
-- Projet GOK8S complet
-- Images Docker pré-chargées
-- Prêt en 2 minutes après import
+```bash
+# Lancer le script d'accès au dashboard
+./dashboard-access
+```
 
-Voir [docs/CHANGELOG.md](docs/CHANGELOG.md) pour les détails.
+Voir [docs/KUBERNETES_DASHBOARD.md](docs/KUBERNETES_DASHBOARD.md) pour plus de détails.
+
+### Utiliser kind (legacy)
+
+Si vous préférez kind malgré les limitations multi-node :
+
+```bash
+./scripts/gok-deploy.sh  # Utilise kind au lieu de k3d
+```
+
+> **Note** : kind a des problèmes multi-node avec cgroup v2. Voir [docs/TROUBLESHOOTING_KIND.md](docs/TROUBLESHOOTING_KIND.md)
 
 ## Scripts de Gestion
 
 Le projet inclut des scripts pour faciliter la gestion :
 
+### Scripts k3d (RECOMMANDÉS) 🚀
+
 | Script | Description | Durée |
 |--------|-------------|-------|
-| `./gok-deploy.sh` | Déploiement complet (cluster + apps) | 3-5 min |
-| `./gok-start.sh` | Vérifier l'environnement existant | 5 sec |
-| `./gok-status.sh` | Rapport d'état complet | 10 sec |
-| `./gok-cleanup.sh` | Supprimer cluster et images | 30 sec |
-| `./gok-learn.sh` | 🎓 CLI interactif d'apprentissage | - |
+| `./k3d-deploy` | Déploiement k3d multi-node complet | 2-3 min |
+| `./k3d-cleanup` | Supprimer cluster k3d et images | 30 sec |
+| `./gok-learn` | 🎓 CLI interactif d'apprentissage | - |
+| `./dashboard-access` | 📊 Accès au Dashboard Kubernetes | 30 sec |
+
+### Scripts kind (legacy)
+
+| Script | Description | Durée |
+|--------|-------------|-------|
+| `./scripts/gok-deploy.sh` | Déploiement kind (problèmes multi-node) | 3-5 min |
+| `./scripts/gok-status.sh` | Rapport d'état complet | 10 sec |
+| `./scripts/gok-cleanup.sh` | Supprimer cluster kind et images | 30 sec |
 
 ### 🎓 Apprentissage Interactif (NOUVEAU!)
 
@@ -203,42 +251,47 @@ Un CLI interactif pour apprendre Kubernetes de manière ludique avec :
 
 Voir [LEARNING_CLI.md](LEARNING_CLI.md) pour les détails.
 
-Voir aussi [QUICKSTART.md](QUICKSTART.md) pour les autres scripts.
+Voir aussi [START_HERE.md](START_HERE.md) pour un guide de démarrage rapide.
 
 ## Commandes utiles
 
 ```bash
-# Gestion avec scripts
-./gok-deploy.sh        # Créer et déployer tout
-./gok-status.sh        # Voir l'état complet
-./gok-cleanup.sh       # Tout supprimer
+# Gestion avec scripts k3d
+./k3d-deploy           # Créer et déployer tout
+./k3d-cleanup          # Tout supprimer
+./gok-learn            # CLI d'apprentissage
+./dashboard-access     # Accéder au Dashboard
 
-# Commandes kind
-kind get clusters              # Voir les clusters
-kind delete cluster --name gotk8s   # Supprimer le cluster
+# Commandes k3d
+k3d cluster list                    # Voir les clusters
+k3d cluster delete gotk8s           # Supprimer le cluster
+k3d image import <image> -c gotk8s  # Charger une image
 
 # Commandes kubectl
 kubectl get pods -A            # Voir tous les pods
-kubectl get nodes              # Voir les nœuds
+kubectl get nodes              # Voir les nœuds (1 server + 2 agents)
 kubectl get all -n westeros    # Voir les ressources GOTK8S
 ```
 
 ## 📚 Documentation
 
-Voir **[docs/INDEX.md](docs/INDEX.md)** pour l'index complet de la documentation.
+### Point d'entrée
+- **[START_HERE.md](START_HERE.md)** - 🎯 Commencez ici pour un démarrage ultra-rapide !
 
-**Documents clés** :
-- **[CHEATSHEET.md](CHEATSHEET.md)** - Commandes rapides ⚡
-- **[K3D_VS_KIND.md](K3D_VS_KIND.md)** - k3d vs kind (multi-node)
-- **[docs/LEARNING_CLI.md](docs/LEARNING_CLI.md)** - CLI interactif d'apprentissage
-- **[docs/KUBERNETES_DASHBOARD.md](docs/KUBERNETES_DASHBOARD.md)** - Guide du Dashboard Kubernetes 📊
-- **[docs/QUICKSTART.md](docs/QUICKSTART.md)** - Démarrage rapide
+### Documentation complète
+Voir **[docs/INDEX.md](docs/INDEX.md)** pour l'index complet.
+
+**Documents essentiels** :
+- **[docs/CHEATSHEET.md](docs/CHEATSHEET.md)** - Commandes kubectl rapides ⚡
+- **[K3D_VS_KIND.md](K3D_VS_KIND.md)** - Pourquoi k3d ? Comparaison détaillée
+- **[docs/LEARNING_CLI.md](docs/LEARNING_CLI.md)** - Guide du CLI interactif 🎓
+- **[docs/KUBERNETES_DASHBOARD.md](docs/KUBERNETES_DASHBOARD.md)** - Dashboard Kubernetes 📊
 
 ## Dépannage
 
-- **[docs/TROUBLESHOOTING_KIND.md](docs/TROUBLESHOOTING_KIND.md)** - Problème multi-node kind
+- **[docs/TROUBLESHOOTING_KIND.md](docs/TROUBLESHOOTING_KIND.md)** - Problèmes multi-node kind
 - **[docs/FIX_MULTINODE.md](docs/FIX_MULTINODE.md)** - Solutions multi-node
-- **[docs/troubleshooting.md](docs/troubleshooting.md)** - Dépannage général
+- **[K3D_VS_KIND.md](K3D_VS_KIND.md)** - Pourquoi nous sommes passés à k3d
 
 ## Contribuer
 
@@ -261,6 +314,22 @@ Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de
 ## Ressources
 
 - [Documentation Kubernetes](https://kubernetes.io/docs/)
-- [Documentation kind](https://kind.sigs.k8s.io/)
+- [Documentation k3d](https://k3d.io/)
+- [Documentation k3s](https://docs.k3s.io/)
 - [Documentation Docker](https://docs.docker.com/)
 - [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
+
+## Changelog
+
+### v2.0 - Migration vers k3d
+- ✅ Migration de kind vers k3d pour support multi-node stable
+- ✅ Support complet cgroup v2
+- ✅ 1 server + 2 agents fonctionnels
+- ✅ Ajout du Dashboard Kubernetes
+- ✅ Amélioration des performances (k3s plus léger que k8s)
+- ✅ Scripts simplifiés avec liens symboliques
+- ✅ Ajout de START_HERE.md pour démarrage rapide
+
+### v1.0 - Version initiale avec kind
+- ⚠️ Problèmes multi-node avec cgroup v2
+- ⚠️ kind conservé pour compatibilité (scripts legacy)
